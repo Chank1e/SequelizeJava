@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConnectionDB {
+class ConnectionDB {
     public ConnectionDB DBConnect() throws SQLException {
         return this;
     }

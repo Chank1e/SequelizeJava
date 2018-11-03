@@ -1,4 +1,4 @@
-package sequelize.model.Exception;
+package sequelize.exception;
 
 public class InvalidColumnNameException extends Exception {
     public InvalidColumnNameException() { super(); }

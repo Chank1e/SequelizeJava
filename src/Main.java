@@ -1,56 +1,48 @@
+import sequelize.DataTypes;
 import sequelize.Sequelize;
-import sequelize.model.Exception.InvalidColumnNameException;
-import sequelize.model.Exception.InvalidTypeException;
+import sequelize.exception.InvalidColumnNameException;
+import sequelize.exception.InvalidTypeException;
 import sequelize.model.Model;
 import sequelize.model.Schema;
-import sequelize.datatypes.*;
+import sequelize.model.SchemaDTO;
 import sequelize.model.SchemaValues;
+import sequelize.exception.InvalidAttributeException;
+import sequelize.exception.NoSchemaProvidedException;
+import sequelize.statement.Operation;
+import sequelize.statement.Statement;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class Main {
 
     public static void main(String[] args)  {
         Sequelize seq = new Sequelize("postgres","rsadmin","rsadminpassword");
-        Schema UserSchema = new Schema()
-                .insert("Name", _Factory.getSimpleType("text"))
-                .insert("Surname", _Factory.getSimpleType("text"));
-
-        Schema ArticleSchema = new Schema()
-                .insert("title", _Factory.getSimpleType("text"))
-                .insert("text", _Factory.getSimpleType("text"))
-                .insert("views", _Factory.getSimpleType("int"))
-                .insert("lastUpdate", _Factory.getSimpleType("timestamp"));
-
-        Model User = seq.define("User", UserSchema);
-        Model Article = seq.define("Article", ArticleSchema);
 
 
-        seq.sync()
-                .thenAccept((Boolean isDone)->{
-                    if(isDone){
-                        try {
-                            User.create(
-                                new SchemaValues()
-                                    .from(UserSchema)
-                                    .withValue("Name", "Max")
-                                    .withValue("Surname", "Parapapam")
-                            );
-                            Article.create(
-                                new SchemaValues()
-                                    .from(ArticleSchema)
-                                    .withValue("title", "Title 1")
-                                    .withValue("text","That works!!!")
-                                    .withValue("views",123)
-                                    .withValue("lastUpdate", new Date(1000))
-                            );
-                        } catch( InvalidColumnNameException | InvalidTypeException e ){
-                            e.printStackTrace();
-                        }
+        Schema testSchema = new Schema();
 
-                    }
-                });
+        testSchema
+                .insert("name", DataTypes.TEXT)
+                .insert("surname", DataTypes.TEXT)
+                .insert("views", DataTypes.INTEGER)
+                .withCreatedAt()
+                .withUpdatedAt();
+
+        Model testModel = seq.define("Test", testSchema);
+
+        Schema test2Schema = new Schema();
+        test2Schema
+                .insert("qq", DataTypes.TEXT);
+
+        Model test2Model = seq.define("Test2", test2Schema);
+
+        test2Model.belongsTo(testModel, "test1_id");
+        seq.sync();
+
+
     }
 
 }

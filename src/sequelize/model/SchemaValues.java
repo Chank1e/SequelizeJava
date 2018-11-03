@@ -1,9 +1,9 @@
 package sequelize.model;
 
-import sequelize.datatypes._Factory;
-import sequelize.datatypes._IndexDatatypeInterface;
-import sequelize.model.Exception.InvalidColumnNameException;
-import sequelize.model.Exception.InvalidTypeException;
+import sequelize.DataTypes;
+import sequelize.exception.InvalidColumnNameException;
+import sequelize.exception.InvalidTypeException;
+import sequelize.exception.NoSchemaProvidedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,15 +19,18 @@ public class SchemaValues {
         return this;
     }
 
-    public SchemaValues withValue(String column, Object value) throws InvalidTypeException, InvalidColumnNameException {
+    public SchemaValues withValue(String column, Object value) throws InvalidTypeException, InvalidColumnNameException, NoSchemaProvidedException {
 
-        if(schema.getSchema().get(column) == null )
+        if(schema == null)
+            throw new NoSchemaProvidedException();
+
+        if(schema.getColumns().get(column) == null )
             throw new InvalidColumnNameException("Column " + column + "is not defined");
 
-        _IndexDatatypeInterface tmpType = (_IndexDatatypeInterface) schema.getSchema().get(column);
+        DataTypes tmpType = (DataTypes) schema.getColumns().get(column);
 
         if(!tmpType.is(value))
-            throw new InvalidTypeException("Column " + column + " expected to be of type " + tmpType.getKey());
+            throw new InvalidTypeException("Column " + column + " expected to be of type " + tmpType.getAsSQL());
 
         values.put(column, value);
         return this;
@@ -37,8 +40,8 @@ public class SchemaValues {
         List<String> list = new ArrayList<String>();
 
         values.forEach((key,value)->{
-            _IndexDatatypeInterface tmpType = (_IndexDatatypeInterface) schema.getSchema().get(key);
-            list.add(_Factory.getSimpleType(tmpType.getKey()).create(value));
+            DataTypes tmpType = (DataTypes) schema.getColumns().get(key);
+            list.add(tmpType.from(value));
         });
 
         return list;

@@ -1,4 +1,4 @@
-package sequelize.model.Exception;
+package sequelize.exception;
 
 public class InvalidTypeException extends Exception {
     public InvalidTypeException() { super(); }
