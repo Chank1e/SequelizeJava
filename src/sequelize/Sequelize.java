@@ -1,63 +1,95 @@
 package sequelize;
 
-import sequelize.datatypes._IndexDatatype;
+import sequelize.logger.AwesomeLogger;
+import sequelize.logger.AwesomeLoggerTypes;
 import sequelize.model.Model;
 import sequelize.model.Schema;
+import sequelize.model.relation.Relation;
 
-import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class Sequelize {
 
 
     public Model define(String name, Schema schema) {
-
-        models.put(name, schema);
-        return new Model(name, schema);
+        if(!schema.hasPrimaryKey())
+            schema.insert("id", DataTypes.PRIMARY_KEY);
+        Model nModel = new Model(name, schema);
+        models.add(nModel);
+        return nModel;
     }
 
-    Map<String, Schema> models = new HashMap<>();
+    List<Model> models = new ArrayList<>();
 
     public Sequelize(String database, String username, String password){
         String url = "jdbc:postgresql://localhost/"+database;
         try {
             SQLExecutor.setConnection(new ConnectionDB().connect(url, username, password));
+            SQLExecutor.executeWithResult("SELECT 1+1 AS result")
+                        .thenAccept((ResultSet res) -> {
+                            try {
+                                while(res.next())
+                                    AwesomeLogger
+                                            .getInstance()
+                                            .setMessage("Test request executed with result " + res.getInt("result") + " (expected : 2)")
+                                            .setType(AwesomeLoggerTypes.INFO)
+                                            .log();
+                            } catch (SQLException e){
+                                ErrorHandler.handle(e);
+                            }
+                        });
         } catch (SQLException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
         }
     }
 
     public CompletableFuture<Boolean> sync() {
 
-        for (Map.Entry<String, Schema> entryModel : models.entrySet()) {
+        List<String> relationsSQL = new ArrayList<>();
+
+        models.forEach((Model model) -> {
+            String name = model.getName();
+            Schema schema = model.getSchema();
+
             final String[] createTableSQL = {""};
-            String name = entryModel.getKey();
-            Schema schema = entryModel.getValue();
-            createTableSQL[0] += "DROP TABLE IF EXISTS \"" + name + "\";";
+            createTableSQL[0] += "DROP TABLE IF EXISTS \"" + name + "\" CASCADE;";
             createTableSQL[0] += "CREATE TABLE IF NOT EXISTS \"" + name + "\" (";
-            createTableSQL[0] += "id SERIAL PRIMARY KEY , ";
-
-            schema.getSchema().forEach((key, value) -> {
+            List<String> schemaSQL = new ArrayList<>();
+            schema.getColumns().forEach((key, value) -> {
                 String columnName = (String) key;
-                _IndexDatatype columnType = (_IndexDatatype) value;
+                DataTypes columnType = (DataTypes) value;
 
-                createTableSQL[0] += columnName + " " + columnType.getKey() + ",";
-
-
+                schemaSQL.add(columnName + " " + columnType.getAsSQL());
             });
-            createTableSQL[0] += "createdAt timestamp NOT NULL, ";
-            createTableSQL[0] += "updatedAt timestamp NOT NULL";
 
+            createTableSQL[0] += String.join(",", schemaSQL);
+
+
+            if(model.hasRelations()) {
+                model.getIterableRelations().forEach((Relation relation) -> {
+//                    relationsSQL.add(keys.get(0) + " " + DataTypes.INTEGER.getAsSQL() + " REFERENCES " + tName + "(" + keys.get(1) + ")");
+                    relationsSQL
+                            .add(
+                                    "ALTER TABLE \"" + model.getName() + "\" " +
+                                    "ADD COLUMN " + relation.getOptions().getSourceFK() + " " + DataTypes.INTEGER.getAsSQL() + "," +
+                                    "ADD FOREIGN KEY (" + relation.getOptions().getSourceFK() + ") " +
+                                    "REFERENCES \"" + relation.getTarget().getName() + "\" ("+relation.getOptions().getTargetPK() + ");"
+                            );
+                });
+            }
             createTableSQL[0] += ");";
-
             SQLExecutor.execute(createTableSQL[0]);
-        }
+        });
+
+        if(relationsSQL.size()>0)
+            SQLExecutor.execute(String.join("",relationsSQL));
 
         return CompletableFuture.completedFuture(true);
+
 
     }
 }
