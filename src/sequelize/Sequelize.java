@@ -1,9 +1,12 @@
 package sequelize;
 
+import sequelize.logger.AwesomeLogger;
+import sequelize.logger.AwesomeLoggerTypes;
 import sequelize.model.Model;
 import sequelize.model.Schema;
 import sequelize.model.relation.Relation;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,19 @@ public class Sequelize {
         String url = "jdbc:postgresql://localhost/"+database;
         try {
             SQLExecutor.setConnection(new ConnectionDB().connect(url, username, password));
+            SQLExecutor.executeWithResult("SELECT 1+1 AS result")
+                        .thenAccept((ResultSet res) -> {
+                            try {
+                                while(res.next())
+                                    AwesomeLogger
+                                            .getInstance()
+                                            .setMessage("Test request executed with result " + res.getInt("result") + " (expected : 2)")
+                                            .setType(AwesomeLoggerTypes.INFO)
+                                            .log();
+                            } catch (SQLException e){
+                                ErrorHandler.handle(e);
+                            }
+                        });
         } catch (SQLException e) {
             ErrorHandler.handle(e);
         }

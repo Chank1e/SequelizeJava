@@ -2,10 +2,12 @@ import sequelize.DataTypes;
 import sequelize.Sequelize;
 import sequelize.model.Model;
 import sequelize.model.Schema;
+import sequelize.model.SchemaDTO;
 import sequelize.model.SchemaValues;
 import sequelize.statement.Operation;
 import sequelize.statement.Statement;
-import sequelize.statement.newStatement;
+
+import java.util.Arrays;
 
 public class Main {
 
@@ -34,16 +36,30 @@ public class Main {
 
         User.create(
                 new SchemaValues()
-                    .insert("name","Alexandr")
-                    .insert("surname","Pashkevich")
+                    .insert("name","Name1")
+                    .insert("surname","SurName1")
         );
 
-        User.delete(
-                new newStatement()
-                    .where("id", Operation.eq, 1)
-                    .and()
-                    .where("name", Operation.eq, "Alexandr")
+        User.create(
+                new SchemaValues()
+                    .insert("name","Name2")
+                    .insert("surname","SurName2")
         );
+
+        User.create(
+                new SchemaValues()
+                    .insert("name","Name3")
+                    .insert("surname","SurName3")
+        );
+
+
+        User.findOne(
+                new Statement()
+                    .setAttributes(Arrays.asList("id", "name"))
+                    .where("id", Operation.eq, 1)
+        ).thenAccept((SchemaDTO dto)->{
+           System.out.println(dto.getData());
+        });
 
 
 

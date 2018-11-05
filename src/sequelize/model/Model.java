@@ -12,9 +12,8 @@ import sequelize.model.relation.BelongsToRelation;
 import sequelize.model.relation.Relation;
 import sequelize.model.relation.RelationList;
 import sequelize.model.relation.RelationOptions;
-import sequelize.statement.Statement;
 import sequelize.statement.StatementType;
-import sequelize.statement.newStatement;
+import sequelize.statement.Statement;
 
 public class Model {
     private String name;
@@ -111,7 +110,7 @@ public class Model {
 
     }
 
-    public CompletableFuture<SchemaDTO> findAll(newStatement statement){
+    public CompletableFuture<SchemaDTO> findAll(Statement statement){
 
         if(statement.getModel() == null)
             statement.setModel(this);
@@ -136,7 +135,7 @@ public class Model {
         });
     }
 
-    public CompletableFuture<SchemaDTO> findOne(newStatement statement){
+    public CompletableFuture<SchemaDTO> findOne(Statement statement){
 
         if(statement.getModel() == null)
             statement.setModel(this);
@@ -161,7 +160,7 @@ public class Model {
         });
     }
 
-    public CompletableFuture<SchemaDTO> update(SchemaValues newValues, newStatement statement) {
+    public CompletableFuture<SchemaDTO> update(SchemaValues newValues, Statement statement) {
 
         if(statement.getModel() == null)
             statement.setModel(this);
@@ -197,7 +196,7 @@ public class Model {
         });
     }
 
-    public CompletableFuture<SchemaDTO> delete(newStatement statement) {
+    public CompletableFuture<SchemaDTO> delete(Statement statement) {
 
         statement.setModel(this);
 
