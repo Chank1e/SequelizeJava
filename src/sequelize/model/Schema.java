@@ -72,5 +72,9 @@ public class Schema {
         return res.get();
     }
 
+    public DataTypes getColumnType(String columnName) {
+        return columns.get(columnName);
+    }
+
 
 }

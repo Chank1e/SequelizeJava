@@ -1,5 +1,7 @@
 package sequelize.model;
 
+import sequelize.ErrorHandler;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -27,7 +29,8 @@ public class SchemaDTO {
                     try {
                         tmp.put(columnName, DBres.getObject(columnName));
                     } catch (SQLException e) {
-                        e.printStackTrace();
+                        ErrorHandler.handle(e);
+
                     }
                 });
                 data.add(tmp);

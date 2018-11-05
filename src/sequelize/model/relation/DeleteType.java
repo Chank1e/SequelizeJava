@@ -1,4 +1,4 @@
-package sequelize.model;
+package sequelize.model.relation;
 
 public enum DeleteType {
     CASCADE, RESTRICT;

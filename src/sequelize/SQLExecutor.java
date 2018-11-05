@@ -25,24 +25,24 @@ public class SQLExecutor {
     }
 
     public static CompletableFuture<Boolean> execute(String query){
-        AwesomeLogger.getInstance().setMessage("Executing \"" + query +"\"").setType(AwesomeLoggerTypes.INFO).log();
+        AwesomeLogger.getInstance().setMessage("Executing without result \"" + query +"\"").setType(AwesomeLoggerTypes.INFO).log();
 
         try {
             connection.createStatement().execute(query);
             return CompletableFuture.completedFuture(true);
         } catch (SQLException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
             return CompletableFuture.completedFuture(false);
         }
     }
     public static CompletableFuture<ResultSet> executeWithResult(String query){
-        AwesomeLogger.getInstance().setMessage("Executing \"" + query +"\"").setType(AwesomeLoggerTypes.INFO).log();
+        AwesomeLogger.getInstance().setMessage("Executing with result \"" + query +"\"").setType(AwesomeLoggerTypes.INFO).log();
 
         try {
             ResultSet res = connection.createStatement().executeQuery(query);
             return CompletableFuture.completedFuture(res);
         } catch (SQLException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
             return CompletableFuture.completedFuture(null);
         }
     }

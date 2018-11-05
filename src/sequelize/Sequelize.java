@@ -2,6 +2,7 @@ package sequelize;
 
 import sequelize.model.Model;
 import sequelize.model.Schema;
+import sequelize.model.relation.Relation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class Sequelize {
         try {
             SQLExecutor.setConnection(new ConnectionDB().connect(url, username, password));
         } catch (SQLException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
         }
     }
 
@@ -53,24 +54,23 @@ public class Sequelize {
 
 
             if(model.hasRelations()) {
-                model.getRelations().forEach((String tName, List<String> keys) -> {
+                model.getIterableRelations().forEach((Relation relation) -> {
 //                    relationsSQL.add(keys.get(0) + " " + DataTypes.INTEGER.getAsSQL() + " REFERENCES " + tName + "(" + keys.get(1) + ")");
                     relationsSQL
                             .add(
                                     "ALTER TABLE \"" + model.getName() + "\" " +
-                                    "ADD COLUMN " + keys.get(0) + " " + DataTypes.INTEGER.getAsSQL() + "," +
-                                    "ADD FOREIGN KEY (" + keys.get(0) + ") " +
-                                    "REFERENCES \"" + tName + "\" ("+keys.get(1) + ");"
+                                    "ADD COLUMN " + relation.getOptions().getSourceFK() + " " + DataTypes.INTEGER.getAsSQL() + "," +
+                                    "ADD FOREIGN KEY (" + relation.getOptions().getSourceFK() + ") " +
+                                    "REFERENCES \"" + relation.getTarget().getName() + "\" ("+relation.getOptions().getTargetPK() + ");"
                             );
                 });
             }
             createTableSQL[0] += ");";
-
             SQLExecutor.execute(createTableSQL[0]);
-
         });
 
-        SQLExecutor.execute(String.join("",relationsSQL));
+        if(relationsSQL.size()>0)
+            SQLExecutor.execute(String.join("",relationsSQL));
 
         return CompletableFuture.completedFuture(true);
 

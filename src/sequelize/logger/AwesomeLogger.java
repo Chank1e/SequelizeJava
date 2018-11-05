@@ -1,5 +1,7 @@
 package sequelize.logger;
 
+import sequelize.ErrorHandler;
+
 import java.util.Date;
 
 import java.io.File;
@@ -23,7 +25,8 @@ public class AwesomeLogger {
         try {
             this.fop = new FileOutputStream(file, true);
         } catch (IOException e){
-            e.printStackTrace();
+            ErrorHandler.handle(e);
+
         }
 
     }
@@ -60,7 +63,7 @@ public class AwesomeLogger {
             fop.write(contentInBytes);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
         }
     }
 }

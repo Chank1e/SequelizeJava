@@ -1,20 +1,11 @@
 import sequelize.DataTypes;
 import sequelize.Sequelize;
-import sequelize.exception.InvalidColumnNameException;
-import sequelize.exception.InvalidTypeException;
 import sequelize.model.Model;
 import sequelize.model.Schema;
-import sequelize.model.SchemaDTO;
 import sequelize.model.SchemaValues;
-import sequelize.exception.InvalidAttributeException;
-import sequelize.exception.NoSchemaProvidedException;
 import sequelize.statement.Operation;
 import sequelize.statement.Statement;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import sequelize.statement.newStatement;
 
 public class Main {
 
@@ -22,25 +13,40 @@ public class Main {
         Sequelize seq = new Sequelize("postgres","rsadmin","rsadminpassword");
 
 
-        Schema testSchema = new Schema();
+        Schema UserSchema = new Schema()
+                                    .withUpdatedAt()
+                                    .withCreatedAt()
+                                    .insert("name", DataTypes.TEXT)
+                                    .insert("surname", DataTypes.TEXT);
 
-        testSchema
-                .insert("name", DataTypes.TEXT)
-                .insert("surname", DataTypes.TEXT)
-                .insert("views", DataTypes.INTEGER)
-                .withCreatedAt()
-                .withUpdatedAt();
+        Schema RoleSchema = new Schema()
+                                    .withUpdatedAt()
+                                    .withCreatedAt()
+                                    .insert("role", DataTypes.INTEGER);
 
-        Model testModel = seq.define("Test", testSchema);
+        Model User = seq.define("User", UserSchema);
+        Model Role = seq.define("Role", RoleSchema);
 
-        Schema test2Schema = new Schema();
-        test2Schema
-                .insert("qq", DataTypes.TEXT);
+        User.belongsTo(Role, "role_id");
 
-        Model test2Model = seq.define("Test2", test2Schema);
 
-        test2Model.belongsTo(testModel, "test1_id");
         seq.sync();
+
+        User.create(
+                new SchemaValues()
+                    .insert("name","Alexandr")
+                    .insert("surname","Pashkevich")
+        );
+
+        User.delete(
+                new newStatement()
+                    .where("id", Operation.eq, 1)
+                    .and()
+                    .where("name", Operation.eq, "Alexandr")
+        );
+
+
+
 
 
     }

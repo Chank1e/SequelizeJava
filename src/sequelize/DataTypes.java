@@ -27,6 +27,8 @@ public enum DataTypes {
                 return obj instanceof Integer;
             case TIMESTAMP:
                 return obj instanceof Date;
+            case PRIMARY_KEY:
+                return obj instanceof Integer;
             default:
                 return true;
         }
@@ -38,6 +40,9 @@ public enum DataTypes {
             case INTEGER:
                 Integer tmpInt = (Integer) obj;
                 return tmpInt.toString();
+            case PRIMARY_KEY:
+                Integer tmpPK = (Integer) obj;
+                return tmpPK.toString();
             case TIMESTAMP:
                 Date tmpDate = (Date) obj;
                 return "to_timestamp(" + Long.toString(tmpDate.getTime()/1000) + ")";
