@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConnectionDB {
+class ConnectionDB {
     public ConnectionDB DBConnect() throws SQLException {
         return this;
     }
@@ -13,7 +13,7 @@ public class ConnectionDB {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            ErrorHandler.handle(e);
         }
         return DriverManager.getConnection(url, username, password);
     }
