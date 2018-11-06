@@ -1,11 +1,9 @@
 package sequelize.statement;
 
 import sequelize.ErrorHandler;
-import sequelize.exception.InvalidAttributeException;
-import sequelize.exception.InvalidColumnNameException;
-import sequelize.exception.InvalidTypeException;
-import sequelize.exception.NoSchemaProvidedException;
+import sequelize.exception.*;
 import sequelize.model.Model;
+import sequelize.model.relation.Relation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +13,7 @@ public class Statement extends aStatement {
     private List<aStatement> chain = new ArrayList<>();
     private StatementType type;
     private List<String> attributes = new ArrayList<>();
+    private List<Model> include = new ArrayList<>();
 
     private Model model;
 
@@ -29,6 +28,12 @@ public class Statement extends aStatement {
 
     public Statement where(String columnName, Operation op, Object obj) {
         this.chain.add(new WhereStatement().setColumnName(columnName).setOp(op).setInit(obj));
+        return this;
+    }
+
+    public Statement include(Model modelToInclude) {
+        include.add(modelToInclude);
+
         return this;
     }
 
@@ -64,21 +69,31 @@ public class Statement extends aStatement {
             resultSQL[0] += attributes.size()>0?String.join(",",attributes):" * ";
             resultSQL[0] += " FROM \"" + this.model.getName() + "\"";
         }
+
+        this.include.forEach((Model modelToInclude) -> {
+
+            Relation relation = model.getRelations().getRelation(model, modelToInclude);
+            resultSQL[0] += " LEFT JOIN \""
+                    + modelToInclude.getName()
+                    + "\" ON (\""
+                    + this.model.getName() + "\"." + relation.getOptions().getSourceFK() + " = \""
+                    + modelToInclude.getName() + "\"." + relation.getOptions().getTargetPK() + ")";
+        });
+
+
         AtomicReference<Boolean> isFirst = new AtomicReference<>(true);
+
         this.chain.forEach((aStatement statement) -> {
 
             if(statement.getType() == StatementType.WHERE){
                 WhereStatement tmpStatement = (WhereStatement) statement;
-
-                tmpStatement.setFirst(isFirst.get()).setColumnType(this.model.getSchema().getColumnType(tmpStatement.getColumnName()));
+                tmpStatement.setFirst(isFirst.get()).setModelName(this.model.getName()).setColumnType(this.model.getSchema().getColumnType(tmpStatement.getColumnName()));
                 resultSQL[0] += tmpStatement.getSQL();
-
             } else {
                 resultSQL[0] += statement.getSQL();
             }
             isFirst.set(false);
         });
-
 
         if(type == StatementType.FIND_ONE)
             resultSQL[0] += " LIMIT 1";
@@ -91,7 +106,7 @@ public class Statement extends aStatement {
         return type;
     }
 
-    public void checkValues(){
+    private void checkValues(){
         if(model == null || model.getSchema() == null)
             try {
                 throw new NoSchemaProvidedException();
@@ -108,6 +123,15 @@ public class Statement extends aStatement {
                     ErrorHandler.handle(e);
                 }
         }
+
+        include.forEach((Model modelToInclude)->{
+            if(!model.getRelations().hasRelation(model, modelToInclude))
+                try {
+                    throw new NoRelationFoundException();
+                } catch (NoRelationFoundException e) {
+                    ErrorHandler.handle(e);
+                }
+        });
 
         chain.forEach((aStatement statement) -> {
             if(statement.getType() == StatementType.WHERE){

@@ -9,10 +9,18 @@ class WhereStatement extends aStatement{
     private DataTypes columnType;
     private Boolean isFirst = true;
     private StatementType type = StatementType.WHERE;
+    private String modelName;
+
+
 
 
     WhereStatement setColumnName(String columnName) {
         this.columnName = columnName;
+        return this;
+    }
+
+    WhereStatement setModelName(String modelName) {
+        this.modelName = modelName;
         return this;
     }
 
@@ -51,7 +59,8 @@ class WhereStatement extends aStatement{
     @Override
     public String getSQL(){
         String keyword = this.getFirst() ? " WHERE ":" ";
-        return keyword + columnName + " " + op.getAsSQL() + " " + columnType.from(init);
+        String modelName = this.modelName!=null?"\""+this.modelName+"\".":"";
+        return keyword + modelName + columnName + " " + op.getAsSQL() + " " + columnType.from(init);
     }
 
     @Override

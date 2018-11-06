@@ -1,6 +1,5 @@
 package sequelize.model;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import sequelize.DataTypes;
 
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ public class Schema {
         columns.put(name, type);
         return this;
     }
-
 
     public Schema(){
     }

@@ -31,6 +31,24 @@ public class RelationList {
         return res.get();
     }
 
+    public Relation getRelation(Model model1, Model model2) {
+        AtomicReference<Relation> res = new AtomicReference<>(null);
+        relations.forEach((Relation rel)->{
+            List<Model> type1 = new ArrayList<>();
+            type1.add(model1);
+            type1.add(model2);
+
+            List<Model> type2 = new ArrayList<>();
+            type2.add(model1);
+            type2.add(model2);
+
+            if(rel.getModels().equals(type1) || rel.getModels().equals(type2))
+                res.set(rel);
+        });
+
+        return res.get();
+    }
+
     public Integer size(){
         return relations.size();
     }

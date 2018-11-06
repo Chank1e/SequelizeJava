@@ -62,7 +62,7 @@ public class Model {
         return relations.getIterable();
     }
 
-    public CompletableFuture<SchemaDTO> create(SchemaValues schemaV) {
+    public CompletableFuture<SequelizeResult> create(SchemaValues schemaV) {
 
         if(schemaV.getSchema() == null)
             schemaV.setSchema(this.schema);
@@ -96,31 +96,25 @@ public class Model {
 
         insertIntoSQL[0] += ") RETURNING *";
 
-        SchemaDTO res = new SchemaDTO();
-        res.setSchema(this.getSchema());
+        SequelizeResult res = new SequelizeResult();
 
         return SQLExecutor.executeWithResult(insertIntoSQL[0]).thenApply(DBres -> {
             try {
                 return res.from(DBres);
             } catch (SQLException e) {
                 ErrorHandler.handle(e);
-                return new SchemaDTO();
+                return new SequelizeResult();
             }
         });
 
     }
 
-    public CompletableFuture<SchemaDTO> findAll(Statement statement){
+    public CompletableFuture<SequelizeResult> findAll(Statement statement){
 
         if(statement.getModel() == null)
             statement.setModel(this);
 
-        SchemaDTO res = new SchemaDTO();
-        res.setSchema(this.getSchema());
-
-        if(statement.getAttributes().size()>0){
-            res.setAttributes(statement.getAttributes());
-        }
+        SequelizeResult res = new SequelizeResult();
 
         statement.setType(StatementType.FIND_ALL);
         String sql = statement.getSQL();
@@ -130,22 +124,18 @@ public class Model {
                 return res.from(DBres);
             } catch (SQLException e) {
                 ErrorHandler.handle(e);
-                return new SchemaDTO();
+                return new SequelizeResult();
             }
         });
     }
 
-    public CompletableFuture<SchemaDTO> findOne(Statement statement){
+    public CompletableFuture<SequelizeResult> findOne(Statement statement){
 
         if(statement.getModel() == null)
             statement.setModel(this);
 
-        SchemaDTO res = new SchemaDTO();
-        res.setSchema(this.getSchema());
+        SequelizeResult res = new SequelizeResult();
 
-        if(statement.getAttributes().size()>0){
-            res.setAttributes(statement.getAttributes());
-        }
 
         statement.setType(StatementType.FIND_ONE);
         String sql = statement.getSQL();
@@ -155,12 +145,12 @@ public class Model {
                 return res.from(DBres);
             } catch (SQLException e) {
                 ErrorHandler.handle(e);
-                return new SchemaDTO();
+                return new SequelizeResult();
             }
         });
     }
 
-    public CompletableFuture<SchemaDTO> update(SchemaValues newValues, Statement statement) {
+    public CompletableFuture<SequelizeResult> update(SchemaValues newValues, Statement statement) {
 
         if(statement.getModel() == null)
             statement.setModel(this);
@@ -183,20 +173,19 @@ public class Model {
 
         sql += " RETURNING *;";
 
-        SchemaDTO res = new SchemaDTO();
-        res.setSchema(this.getSchema());
+        SequelizeResult res = new SequelizeResult();
 
         return SQLExecutor.executeWithResult(sql).thenApply(DBres -> {
             try {
                 return res.from(DBres);
             } catch (SQLException e) {
                 ErrorHandler.handle(e);
-                return new SchemaDTO();
+                return new SequelizeResult();
             }
         });
     }
 
-    public CompletableFuture<SchemaDTO> delete(Statement statement) {
+    public CompletableFuture<SequelizeResult> delete(Statement statement) {
 
         statement.setModel(this);
 
@@ -206,15 +195,14 @@ public class Model {
 
         sql += " RETURNING *;";
 
-        SchemaDTO res = new SchemaDTO();
-        res.setSchema(this.getSchema());
+        SequelizeResult res = new SequelizeResult();
 
         return SQLExecutor.executeWithResult(sql).thenApply(DBres -> {
             try {
                 return res.from(DBres);
             } catch (SQLException e) {
                 ErrorHandler.handle(e);
-                return new SchemaDTO();
+                return new SequelizeResult();
             }
         });
     }

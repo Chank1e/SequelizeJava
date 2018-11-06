@@ -2,17 +2,15 @@ import sequelize.DataTypes;
 import sequelize.Sequelize;
 import sequelize.model.Model;
 import sequelize.model.Schema;
-import sequelize.model.SchemaDTO;
+import sequelize.model.SequelizeResult;
 import sequelize.model.SchemaValues;
 import sequelize.statement.Operation;
 import sequelize.statement.Statement;
 
-import java.util.Arrays;
-
 public class Main {
 
     public static void main(String[] args)  {
-        Sequelize seq = new Sequelize("postgres","rsadmin","rsadminpassword");
+        Sequelize seq = new Sequelize("postgres","postgres","");
 
 
         Schema UserSchema = new Schema()
@@ -30,6 +28,7 @@ public class Main {
         Model Role = seq.define("Role", RoleSchema);
 
         User.belongsTo(Role, "role_id");
+//        Role.hasMany(User);
 
 
         seq.sync();
@@ -55,10 +54,12 @@ public class Main {
 
         User.findOne(
                 new Statement()
-                    .setAttributes(Arrays.asList("id", "name"))
+//                    .setAttributes(Arrays.asList("id", "name"))
                     .where("id", Operation.eq, 1)
-        ).thenAccept((SchemaDTO dto)->{
-           System.out.println(dto.getData());
+                    .include(Role)
+//                    .include(Role, new Statement())
+        ).thenAccept((SequelizeResult res)->{
+           System.out.println(res.getData());
         });
 
 
